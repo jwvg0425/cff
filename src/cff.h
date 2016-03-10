@@ -2,6 +2,8 @@
 #include <vector>
 #include <list>
 #include <functional>
+#include <algorithm>
+#include <iterator>
 
 namespace cff
 {
@@ -11,58 +13,34 @@ class Enumerator
 {
 public:
 	using Self = Enumerator< ValueType, Container, Allocator>;
-	using Pred = std::function<bool(const ValueType&)>;
-
-	template<typename Res>
-	using Mapper = std::function<Res(const ValueType&)>;
-
-	template<typename Res, typename T>
-	using Zipper = std::function<Res(const ValueType&, const T&)>;
-
 	using C = Container<ValueType, Allocator<ValueType> >;
 
+	template<typename Pred>
+	bool all(Pred p)
+	{
+		return std::all_of(mContainer.begin(), mContainer.end(), p);
+	}
+
+	template<typename Pred>
+	bool any(Pred p)
+	{
+		return std::any_of(mContainer.begin(), mContainer.end(), p);
+	}
+
+	template<typename Pred>
 	Self filter(Pred p)
 	{
 		Self result;
-		auto now = result.mContainer.begin();
 
-		for (auto& v : mContainer)
-		{
-			if (p(v))
-			{
-				now = ++result.mContainer.insert(now, v);
-			}
-		}
-
+		std::copy_if(mContainer.begin(), mContainer.end(), std::back_inserter(result.container()), p);
 		return result;
 	}
 
-	template<typename Res>
-	Enumerator<Res, Container, Allocator> map(Mapper<Res> m)
+	template<typename Mapper>
+	auto map(Mapper m)
 	{
-		Enumerator<Res, Container, Allocator> result;
-		auto now = result.container().begin();
-
-		for (auto& v : mContainer)
-		{
-			now = ++result.container().insert(now, std::move(m(v)));
-		}
-
-		return result;
-	}
-
-	template<typename T>
-	Enumerator<std::pair<ValueType, T>, Container, Allocator> zip(Enumerator<T, Container, Allocator> other)
-	{
-		auto f = mContainer.begin();
-		auto s = other.container().begin();
-		Enumerator<std::pair<ValueType, T>, Container, Allocator> result;
-		auto now = result.container().begin();
-
-		for (; f != mContainer.end() && s != other.container().end(); ++f, ++s)
-		{
-			now = ++result.container().insert(now, std::make_pair(*f, *s));
-		}
+		Enumerator<decltype(m(ValueType())), Container, Allocator> result;
+		std::transform(mContainer.begin(), mContainer.end(), std::back_inserter(result.container()), m);
 
 		return result;
 	}

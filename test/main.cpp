@@ -1,4 +1,5 @@
 #include "../src/cff.h"
+#include <algorithm>
 
 int main()
 {
@@ -25,11 +26,11 @@ int main()
 		printf("%d ", val);
 	}
 
-	auto map = vf.map<int>([](float f) { return (int)(f * 100); });
+	auto map = vf.map([](float f) { return "hello"; });
 
 	for (const auto& val : map.container())
 	{
-		printf("%d ", val);
+		printf("%s ", val);
 	}
 
 	return 0;
