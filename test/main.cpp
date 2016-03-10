@@ -49,12 +49,5 @@ int main()
 
 	vi->push_back(3);
 
-	//unique
-	auto unique = vi.unique([](int i, int j) { return i == j; });
-
-	puts("=========== unique ==========");
-	unique.foreach([](int i) { printf("%d ", i); });
-	puts("");
-
 	return 0;
 }
