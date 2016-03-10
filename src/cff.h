@@ -99,7 +99,6 @@ public:
 		return result;
 	}
 
-	template<typename comp>
 	void sort()
 	{
 		std::sort(mContainer.begin(), mContainer.end());

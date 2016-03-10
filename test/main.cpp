@@ -70,6 +70,20 @@ int main()
 	puts("=========== zip ==========");
 	zipped2.foreach([](std::tuple<int, int, int> t) {printf("(%d, %d, %d) ", std::get<0>(t), std::get<1>(t), std::get<2>(t)); });
 	puts("");
+
+	//sort
+	cff::Enumerator<int> sort = { 1,4,2,3,5 };
+
+	sort.sort();
+
+	puts("=========== sort ==========");
+	sort.foreach([](int i) {printf("%d ", i); });
+	puts("");
+
+	sort.sort([](int i, int j) { return i > j; });
+
+	sort.foreach([](int i) {printf("%d ", i); });
+	puts("");
 	
 	return 0;
 }
