@@ -1,37 +1,60 @@
 #include "../src/cff.h"
-#include <algorithm>
+#include <string>
 
 int main()
 {
-	cff::Enumerator<int> vi;
-	cff::Enumerator<float> vf;
+	cff::Enumerator<int> vi = { 1,2,3,4,5,6,7,8,9,10 };
 
-	for (int i = 0; i < 100; i++)
-	{
-		vi.container().push_back(i);
-		vf.container().push_back((float)i*0.05f);
-	}
+	//filter
+	auto filtered = vi.filter([](int i) { return i % 2 == 0; });
 
-	auto zip = vi.zip(vf);
+	puts("=========== filter ==========");
+	filtered.foreach([](int i) { printf("%d ", i); });
+	puts("");
 
-	for (const auto& val : zip.container())
-	{
-		printf("(%d, %f) ", val.first, val.second);
-	}
+	//map
+	auto mapped = vi.map([](int i) { return "number " + std::to_string(i); });
 
-	auto filter = vi.filter([](int i) { return i % 3 == 0; });
+	puts("=========== map ==========");
+	mapped.foreach([](const std::string& s) { printf("%s ", s.c_str()); });
+	puts("");
 
-	for (const auto& val : filter.container())
-	{
-		printf("%d ", val);
-	}
+	//all
+	bool isAllEven = filtered.all([](int i) { return i % 2 == 0; });
 
-	auto map = vf.map([](float f) { return "hello"; });
+	puts("=========== all ==========");
+	printf("%s", isAllEven ? "true" : "false");
+	puts("");
 
-	for (const auto& val : map.container())
-	{
-		printf("%s ", val);
-	}
+	//any
+	bool isAnyOdd = vi.any([](int i) { return i % 2 == 1; });
+
+	puts("=========== all ==========");
+	printf("%s", isAnyOdd ? "true" : "false");
+	puts("");
+	
+	//foldl
+	auto sum = vi.foldl(0, [](int& acc, int i) { acc += i; });
+
+	puts("=========== foldl ==========");
+	printf("sum = %d", sum);
+	puts("");
+
+	//foldr
+	auto reverse = vi.foldr(cff::Enumerator<int>(), [](int i, cff::Enumerator<int>& v) {v->push_back(i); });
+
+	puts("=========== foldr ==========");
+	reverse.foreach([](int i) { printf("%d ", i); });
+	puts("");
+
+	vi->push_back(3);
+
+	//unique
+	auto unique = vi.unique([](int i, int j) { return i == j; });
+
+	puts("=========== unique ==========");
+	unique.foreach([](int i) { printf("%d ", i); });
+	puts("");
 
 	return 0;
 }

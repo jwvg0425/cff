@@ -12,6 +12,14 @@ template<typename ValueType, template<typename , typename> typename Container = 
 class Enumerator
 {
 public:
+
+	Enumerator<ValueType, Container, Allocator>() = default;
+
+	Enumerator<ValueType, Container, Allocator>(std::initializer_list<ValueType> init)
+		:mContainer(init)
+	{
+	}
+
 	using Self = Enumerator< ValueType, Container, Allocator>;
 	using C = Container<ValueType, Allocator<ValueType> >;
 
@@ -27,19 +35,27 @@ public:
 		return std::any_of(mContainer.begin(), mContainer.end(), p);
 	}
 
+	template<typename Res, typename Fold>
+	Res foldl(Res seed, Fold f)
+	{
+		foreach([&f, &seed](ValueType& element) { f(seed, element); });
+
+		return seed;
+	}
+
+	template<typename Res, typename Fold>
+	Res foldr(Res seed, Fold f)
+	{
+		std::for_each(mContainer.rbegin(), mContainer.rend(), 
+			[&f, &seed](ValueType& element) { f(element, seed); });
+		
+		return seed;
+	}
+
 	template<typename Pred>
 	ValueType& find(Pred p)
 	{
 		return *std::find_if(mContainer.begin(), mContainer.end(), p);
-	}
-
-	Self unique()
-	{
-		Self result;
-
-		std::unique_copy(mContainer.begin(), mContainer.end(), std::back_inserter(result.container()));
-
-		return result;
 	}
 
 	template<typename Pred>
@@ -47,7 +63,7 @@ public:
 	{
 		Self result;
 
-		std::copy_if(mContainer.begin(), mContainer.end(), std::back_inserter(result.container()), p);
+		std::copy_if(mContainer.begin(), mContainer.end(), std::back_inserter(*result), p);
 		return result;
 	}
 
@@ -55,14 +71,30 @@ public:
 	auto map(Mapper m)
 	{
 		Enumerator<decltype(m(ValueType())), Container, Allocator> result;
-		std::transform(mContainer.begin(), mContainer.end(), std::back_inserter(result.container()), m);
+		std::transform(mContainer.begin(), mContainer.end(), std::back_inserter(*result), m);
 
 		return result;
+	}
+
+	template<typename For>
+	auto foreach(For f)
+	{
+		std::for_each(mContainer.begin(), mContainer.end(), f);
 	}
 
 	C& container()
 	{
 		return mContainer;
+	}
+
+	C* operator->()
+	{
+		return &mContainer;
+	}
+
+	C& operator*()
+	{
+		return container();
 	}
 
 private:
