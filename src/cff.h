@@ -126,6 +126,35 @@ public:
 		std::for_each(mContainer.begin(), mContainer.end(), f);
 	}
 
+	template<typename Zipper, typename E1, typename ...Es>
+	auto zipWith(Zipper zipper, E1 e1, Es... es)
+	{
+		auto begins = std::make_tuple(mContainer.begin(), e1->begin(), (es->begin())...);
+		auto ends = std::make_tuple(mContainer.end(), e1->end(), (es->end())...);
+
+		using Res = decltype(zipper(std::declval<ValueType>(), *e1->begin(), (*es->begin())...));
+		Enumerator<Res, Container, Allocator> result;
+		
+
+		for (auto it = std::back_inserter(*result);
+			!tupleIt<sizeof...(es)+1>::anyEqual(begins, ends);
+			tupleIt<sizeof...(es)+1>::next(begins))
+		{
+			it = tupleIt<sizeof...(es)+1>::eval(zipper, begins);
+		}
+
+		return result;
+	}
+
+	template<typename E1, typename ...Es>
+	auto zip(E1 e1, Es... es)
+	{
+		return zipWith([](auto&&... params)
+		{
+			return std::make_tuple(params...);
+		}, e1, es...);
+	}
+
 	C& container()
 	{
 		return mContainer;
@@ -142,6 +171,56 @@ public:
 	}
 
 private:
+
+	template<int idx>
+	struct tupleIt
+	{
+		template<typename ...Args>
+		static bool anyEqual(const std::tuple<Args...>& t1, const std::tuple<Args...>& t2)
+		{
+			if (std::get<idx>(t1) == std::get<idx>(t2))
+				return true;
+
+			return tupleIt<idx - 1>::anyEqual(t1, t2);
+		}
+
+		template<typename ...Args>
+		static void next(std::tuple<Args...>& t)
+		{
+			tupleIt<idx - 1>::next(t);
+
+			++std::get<idx>(t);
+		}
+
+		template<typename Func, typename Tuple, typename...Args>
+		static auto eval(Func func, Tuple&& t, Args&&... args)
+		{
+			return tupleIt<idx - 1>::eval(func, std::forward<Tuple>(t), std::get<idx>(t), args...);
+		}
+	};
+
+	template<>
+	struct tupleIt<0>
+	{
+		template<typename ...Args>
+		static bool anyEqual(const std::tuple<Args...>& t1, const std::tuple<Args...>& t2)
+		{
+			return std::get<0>(t1) == std::get<0>(t2);
+		}
+
+		template<typename ...Args>
+		static void next(std::tuple<Args...>& t)
+		{
+			++std::get<0>(t);
+		}
+
+		template<typename Func, typename Tuple, typename...Args>
+		static auto eval(Func func, Tuple&& t, Args&&... args)
+		{
+			return func(*std::get<0>(t), (*args)...);
+		}
+	};
+
 	C mContainer;
 };
 

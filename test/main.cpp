@@ -54,6 +54,22 @@ int main()
 	puts("=========== foldr ==========");
 	printf("%s", vi.any(equal3) ? "true" : "false");
 	puts("");
+
+	//zipWith
+	cff::Enumerator<int> one = { 1,2,3,4,5,6 };
+	cff::Enumerator<int> two = { 6,5,4,3,2,1 };
+	cff::Enumerator<int> three = { 1,2,3,4,5,6,7 };
+
+	auto zipped = one.zipWith([](int a, int b, int c) { return a * 100 + b * 10 + c; }, two, three);
+	auto zipped2 = one.zip(two, three);
+
+	puts("=========== zipWith ==========");
+	zipped.foreach([](int i) {printf("%d ", i); });
+	puts("");
+
+	puts("=========== zip ==========");
+	zipped2.foreach([](std::tuple<int, int, int> t) {printf("(%d, %d, %d) ", std::get<0>(t), std::get<1>(t), std::get<2>(t)); });
+	puts("");
 	
 	return 0;
 }
