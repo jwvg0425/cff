@@ -14,16 +14,46 @@ template<typename ValueType, template<typename, typename> typename Container = s
 class Enumerator
 {
 public:
+	using Self = Enumerator<ValueType, Container, Allocator>;
+	using C = Container<ValueType, Allocator<ValueType> >;
 
 	Enumerator<ValueType, Container, Allocator>() = default;
+	
+	Enumerator<ValueType, Container, Allocator>(const Self& s)
+		: mContainer(s.mContainer)
+	{
+	}
+	
+	Enumerator<ValueType, Container, Allocator>(Self&& s)
+		: mContainer(std::move(s.mContainer))
+	{
+	}
 
 	Enumerator<ValueType, Container, Allocator>(std::initializer_list<ValueType> init)
 		: mContainer(init)
 	{
 	}
 
-	using Self = Enumerator< ValueType, Container, Allocator>;
-	using C = Container<ValueType, Allocator<ValueType> >;
+	Enumerator<ValueType, Container, Allocator>(const C& c)
+		: mContainer(c)
+	{
+	}
+
+	Enumerator<ValueType, Container, Allocator>(C&& c)
+		: mContainer(std::move(c))
+	{
+	}
+
+	Self& operator=(const Self& s)
+	{
+		mContainer.assign(s.mContainer);
+	}
+
+	Self& operator=(Self&& s)
+	{
+		mContainer.assign(std::move(s.mContainer));
+	}
+
 
 	template<typename Pred>
 	bool all(Pred p)
@@ -69,10 +99,22 @@ public:
 		return result;
 	}
 
+	template<typename comp>
+	void sort()
+	{
+		std::sort(mContainer.begin(), mContainer.end());
+	}
+
+	template<typename Pred>
+	void sort(Pred p)
+	{
+		std::sort(mContainer.begin(), mContainer.end(), p);
+	}
+
 	template<typename Mapper>
 	auto map(Mapper m)
 	{
-		Enumerator<decltype(m(ValueType())), Container, Allocator> result;
+		Enumerator<decltype(m(std::declval<ValueType>())), Container, Allocator> result;
 		std::transform(mContainer.begin(), mContainer.end(), std::back_inserter(*result), m);
 
 		return result;

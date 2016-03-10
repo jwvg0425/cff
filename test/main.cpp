@@ -29,7 +29,7 @@ int main()
 	//any
 	bool isAnyOdd = vi.any([](int i) { return i % 2 == 1; });
 
-	puts("=========== all ==========");
+	puts("=========== any ==========");
 	printf("%s", isAnyOdd ? "true" : "false");
 	puts("");
 	
@@ -47,12 +47,13 @@ int main()
 	reverse.foreach([](int i) { printf("%d ", i); });
 	puts("");
 
-	vi->push_back(3);
+	//currying
+	auto curried = cff::curry([](int x, int y) { return x == y; });
+	auto equal3 = curried(3);
 
-	auto curried = cff::curry([](int x, int y) {return x + y; });
-	auto curried3 = curried(3);
-
-	printf("%d %d", curried(5)(6), curried3(9));
-
+	puts("=========== foldr ==========");
+	printf("%s", vi.any(equal3) ? "true" : "false");
+	puts("");
+	
 	return 0;
 }
