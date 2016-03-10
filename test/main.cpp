@@ -1,6 +1,11 @@
 #include "../src/cff.h"
 #include <string>
 
+int plus(int x, int y)
+{
+	return x + y;
+}
+
 int main()
 {
 	cff::Enumerator<int> vi = { 1,2,3,4,5,6,7,8,9,10 };
@@ -51,8 +56,17 @@ int main()
 	auto curried = cff::curry([](int x, int y) { return x == y; });
 	auto equal3 = curried(3);
 
-	puts("=========== foldr ==========");
+	puts("=========== curry ==========");
 	printf("%s", vi.any(equal3) ? "true" : "false");
+	puts("");
+
+	auto curriedPlus = cff::curry(plus);
+
+	printf("%d ", curriedPlus(3)(5));
+	auto plus7 = curriedPlus(7);
+	
+	printf("%d", plus7(9));
+
 	puts("");
 
 	//zipWith

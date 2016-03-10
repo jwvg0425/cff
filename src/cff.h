@@ -260,6 +260,24 @@ auto curry(std::function<Res(Arg1, Arg2, Args...)> func)
 	};
 }
 
+template<typename Res>
+std::function<Res()> curry(Res (*func)())
+{
+	return func;
+}
+
+template<typename Res, typename Arg>
+std::function<Res(Arg)> curry(Res(*func)(Arg))
+{
+	return func;
+}
+
+template<typename Res, typename Arg1, typename Arg2, typename ...Args>
+auto curry(Res(*func)(Arg1, Arg2, Args...))
+{
+	return curry(std::function<Res(Arg1, Arg2, Args...)>(func));
+}
+
 template<typename Lambda>
 auto curry(Lambda&& lambda)
 {
