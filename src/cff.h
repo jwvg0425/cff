@@ -28,6 +28,21 @@ public:
 	}
 
 	template<typename Pred>
+	ValueType& find(Pred p)
+	{
+		return *std::find_if(mContainer.begin(), mContainer.end(), p);
+	}
+
+	Self unique()
+	{
+		Self result;
+
+		std::unique_copy(mContainer.begin(), mContainer.end(), std::back_inserter(result.container()));
+
+		return result;
+	}
+
+	template<typename Pred>
 	Self filter(Pred p)
 	{
 		Self result;
