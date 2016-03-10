@@ -68,7 +68,8 @@ ei.any([](int i){return i%2==1;}); // false
 cff::Enumerator<int> ei = {1,2,3,4,5,6,7,8,9,10};
 
 ei.foldl(0, [](int& acc, int i) { acc += i; }); // 55
-ei.foldr(cff::Enumerator<int>(), [](int i, cff::Enumerator<int>& acc) { acc->push_back(i); }); // {10,9,8,7,6,5,4,3,2,1}
+// {10,9,8,7,6,5,4,3,2,1}
+ei.foldr(cff::Enumerator<int>(), [](int i, cff::Enumerator<int>& acc) { acc->push_back(i); }); 
 ```
 
 #### find 
