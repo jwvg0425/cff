@@ -49,5 +49,10 @@ int main()
 
 	vi->push_back(3);
 
+	auto curried = cff::curry([](int x, int y) {return x + y; });
+	auto curried3 = curried(3);
+
+	printf("%d %d", curried(5)(6), curried3(9));
+
 	return 0;
 }

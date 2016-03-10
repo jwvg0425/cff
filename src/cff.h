@@ -8,7 +8,9 @@
 namespace cff
 {
 
-template<typename ValueType, template<typename , typename> typename Container = std::vector , template<typename> typename Allocator = std::allocator>
+//enumerator
+
+template<typename ValueType, template<typename, typename> typename Container = std::vector, template<typename> typename Allocator = std::allocator>
 class Enumerator
 {
 public:
@@ -16,7 +18,7 @@ public:
 	Enumerator<ValueType, Container, Allocator>() = default;
 
 	Enumerator<ValueType, Container, Allocator>(std::initializer_list<ValueType> init)
-		:mContainer(init)
+		: mContainer(init)
 	{
 	}
 
@@ -38,7 +40,7 @@ public:
 	template<typename Res, typename Fold>
 	Res foldl(Res seed, Fold f)
 	{
-		foreach([&f, &seed](ValueType& element) { f(seed, element); });
+		foreach([&f, &seed](const ValueType& element) { f(seed, element); });
 
 		return seed;
 	}
@@ -46,9 +48,9 @@ public:
 	template<typename Res, typename Fold>
 	Res foldr(Res seed, Fold f)
 	{
-		std::for_each(mContainer.rbegin(), mContainer.rend(), 
-			[&f, &seed](ValueType& element) { f(element, seed); });
-		
+		std::for_each(mContainer.rbegin(), mContainer.rend(),
+			[&f, &seed](const ValueType& element) { f(element, seed); });
+
 		return seed;
 	}
 
@@ -77,7 +79,7 @@ public:
 	}
 
 	template<typename For>
-	auto foreach(For f)
+	void foreach(For f)
 	{
 		std::for_each(mContainer.begin(), mContainer.end(), f);
 	}
@@ -101,5 +103,47 @@ private:
 	C mContainer;
 };
 
+
+//curry
+
+template<typename Lambda>
+struct lambdaToFunc;
+
+template <typename Res, typename Class, typename ...Args>
+struct lambdaToFunc<Res(Class::*)(Args...) const>
+{
+	using funcType = std::function<Res(Args...)>;
+};
+
+template<typename Res>
+std::function<Res()> curry(std::function<Res()> func)
+{
+	return func;
+}
+
+template<typename Res, typename Arg>
+std::function<Res(Arg)> curry(std::function<Res(Arg)> func)
+{
+	return func;
+}
+
+template<typename Res, typename Arg1, typename Arg2, typename ...Args>
+auto curry(std::function<Res(Arg1, Arg2, Args...)> func)
+{
+	return [func](Arg1&& arg1)
+	{
+		return curry<Res, Arg2, Args...>((std::function<Res(Arg2, Args...)>)
+			[func, arg1](Arg2&& arg2, Args&&... args)
+		{
+			return func(arg1, std::forward<Arg2>(arg2), std::forward<Args>(args)...);
+		});
+	};
+}
+
+template<typename Lambda>
+auto curry(Lambda&& lambda)
+{
+	return curry((lambdaToFunc<decltype(&Lambda::operator())>::funcType)std::forward<Lambda>(lambda));
+}
 
 }
