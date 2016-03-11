@@ -56,15 +56,15 @@ public:
 
 
 	template<typename Pred>
-	bool all(Pred p)
+	bool all(Pred&& p) const
 	{
-		return std::all_of(mContainer.begin(), mContainer.end(), p);
+		return std::all_of(mContainer.begin(), mContainer.end(), std::forward<Pred>(p));
 	}
 
 	template<typename Pred>
-	bool any(Pred p)
+	bool any(Pred&& p) const
 	{
-		return std::any_of(mContainer.begin(), mContainer.end(), p);
+		return std::any_of(mContainer.begin(), mContainer.end(), std::forward<Pred>(p));
 	}
 
 	template<typename Res, typename Fold>
@@ -85,17 +85,17 @@ public:
 	}
 
 	template<typename Pred>
-	ValueType& find(Pred p)
+	ValueType& find(Pred&& p) const
 	{
-		return *std::find_if(mContainer.begin(), mContainer.end(), p);
+		return *std::find_if(mContainer.begin(), mContainer.end(), std::forward<Pred>(p));
 	}
 
 	template<typename Pred>
-	Self filter(Pred p)
+	Self filter(Pred&& p) const
 	{
 		Self result;
 
-		std::copy_if(mContainer.begin(), mContainer.end(), std::back_inserter(*result), p);
+		std::copy_if(mContainer.begin(), mContainer.end(), std::back_inserter(*result), std::forward<Pred>(p));
 		return result;
 	}
 
@@ -105,28 +105,28 @@ public:
 	}
 
 	template<typename Pred>
-	void sort(Pred p)
+	void sort(Pred&& p)
 	{
-		std::sort(mContainer.begin(), mContainer.end(), p);
+		std::sort(mContainer.begin(), mContainer.end(), std::forward<Pred>(p));
 	}
 
 	template<typename Mapper>
-	auto map(Mapper m)
+	auto map(Mapper&& m) const
 	{
 		Enumerator<decltype(m(std::declval<ValueType>())), Container, Allocator> result;
-		std::transform(mContainer.begin(), mContainer.end(), std::back_inserter(*result), m);
+		std::transform(mContainer.begin(), mContainer.end(), std::back_inserter(*result), std::forward<Mapper>(m));
 
 		return result;
 	}
 
 	template<typename For>
-	void foreach(For f)
+	void foreach(For&& f)
 	{
-		std::for_each(mContainer.begin(), mContainer.end(), f);
+		std::for_each(mContainer.begin(), mContainer.end(), std::forward<For>(f));
 	}
 
 	template<typename Zipper, typename E1, typename ...Es>
-	auto zipWith(Zipper zipper, E1 e1, Es... es)
+	auto zipWith(Zipper&& zipper, E1& e1, Es&... es)
 	{
 		auto begins = std::make_tuple(mContainer.begin(), e1->begin(), (es->begin())...);
 		auto ends = std::make_tuple(mContainer.end(), e1->end(), (es->end())...);
@@ -139,14 +139,14 @@ public:
 			!tupleIt<sizeof...(es)+1>::anyEqual(begins, ends);
 			tupleIt<sizeof...(es)+1>::next(begins))
 		{
-			it = tupleIt<sizeof...(es)+1>::eval(zipper, begins);
+			it = tupleIt<sizeof...(es)+1>::eval(std::forward<Zipper>(zipper), begins);
 		}
 
 		return result;
 	}
 
 	template<typename E1, typename ...Es>
-	auto zip(E1 e1, Es... es)
+	auto zip(E1& e1, Es&... es)
 	{
 		return zipWith([](auto&&... params)
 		{
@@ -192,9 +192,9 @@ private:
 		}
 
 		template<typename Func, typename Tuple, typename...Args>
-		static auto eval(Func func, Tuple&& t, Args&&... args)
+		static auto eval(Func&& func, Tuple&& t, Args&&... args)
 		{
-			return tupleIt<idx - 1>::eval(func, std::forward<Tuple>(t), std::get<idx>(t), args...);
+			return tupleIt<idx - 1>::eval(std::forward<Func>(func), std::forward<Tuple>(t), std::get<idx>(t), args...);
 		}
 	};
 
@@ -214,7 +214,7 @@ private:
 		}
 
 		template<typename Func, typename Tuple, typename...Args>
-		static auto eval(Func func, Tuple&& t, Args&&... args)
+		static auto eval(Func&& func, Tuple&& t, Args&&... args)
 		{
 			return func(*std::get<0>(t), (*args)...);
 		}
